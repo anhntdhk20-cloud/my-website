@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Facebook Story Clone</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a2e;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* ===== PHONE FRAME ===== */
+    .phone-frame {
+      width: 360px;
+      min-height: 640px;
+      background: #0a0a1a;
+      border-radius: 36px;
+      border: 2px solid #2a2a4a;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ===== STORY BACKGROUND (starry dark) ===== */
+    .story-bg {
+      width: 100%;
+      min-height: 640px;
+      background: radial-gradient(ellipse at 20% 30%, #1b1b3a 0%, #0a0a1a 60%);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+
+    /* Stars */
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+      opacity: 0.6;
+      animation: twinkle 2s infinite alternate;
+    }
+    @keyframes twinkle { from { opacity: 0.3; } to { opacity: 0.9; } }
+
+    /* ===== HEADER ===== */
+    .story-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 14px 10px;
+      z-index: 10;
+      position: relative;
+    }
+
+    .avatar-wrapper {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 2px solid #1877f2;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .avatar-wrapper img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .avatar-placeholder {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #1877f2, #42a5f5);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 16px; font-weight: bold;
+    }
+
+    .header-info { flex: 1; min-width: 0; }
+    .header-name {
+      font-size: 13px; font-weight: 600; color: white;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .header-meta {
+      font-size: 11px; color: rgba(255,255,255,0.7);
+      display: flex; align-items: center; gap: 4px; margin-top: 1px;
+    }
+    .header-meta .music-icon { font-size: 10px; }
+
+    .header-actions {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .btn-icon {
+      background: none; border: none; cursor: pointer;
+      color: white; font-size: 18px; padding: 2px;
+      opacity: 0.85;
+    }
+    .btn-icon:hover { opacity: 1; }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-bar-area {
+      display: flex; gap: 3px;
+      padding: 0 14px 6px;
+      z-index: 10; position: relative;
+    }
+    .progress-segment {
+      flex: 1; height: 2px;
+      background: rgba(255,255,255,0.35);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: white;
+      border-radius: 2px;
+    }
+    .progress-segment:first-child .progress-fill { width: 100%; }
+    .progress-segment:nth-child(2) .progress-fill { width: 40%; }
+    .progress-segment:nth-child(3) .progress-fill { width: 0%; }
+
+    /* ===== PHOTO STACK ===== */
+    .photos-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 20px 10px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .photo-card {
+      width: 100%;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 3px solid white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      position: relative;
+      background: #2a5a2a;
+    }
+
+    /* Camo background pattern (SVG-based) */
+    .camo-bg {
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(ellipse 40px 30px at 10% 20%, #3a5a1a 0%, transparent 60%),
+        radial-gradient(ellipse 60px 40px at 70% 10%, #5a7a2a 0%, transparent 60%),
+        radial-gradient(ellipse 35px 50px at 30% 60%, #1a3a0a 0%, transparent 60%),
+        radial-gradient(ellipse 50px 35px at 80% 70%, #4a6a1a 0%, transparent 60%),
+        radial-gradient(ellipse 45px 45px at 50% 40%, #2a4a10 0%, transparent 60%),
+        radial-gradient(ellipse 55px 30px at 15% 80%, #6a8a2a 0%, transparent 60%),
+        radial-gradient(ellipse 30px 55px at 90% 30%, #3a5a1a 0%, transparent 60%),
+        radial-gradient(ellipse 65px 25px at 55% 85%, #1a2a08 0%, transparent 60%);
+      background-color: #4a6a2a;
+      background-blend-mode: multiply;
+    }
+
+    .photo-placeholder {
+      width: 100%;
+      height: 165px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 30px;
+    }
+
+    /* Person silhouette */
+    .person-silhouette {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .person-head {
+      width: 42px; height: 42px;
+      background: #f5c5a0;
+      border-radius: 50%;
+      position: relative;
+      z-index: 2;
+    }
+    .person-hat {
+      width: 52px; height: 22px;
+      background: #556b2f;
+      border-radius: 50% 50% 0 0 / 60% 60% 0 0;
+      position: absolute;
+      top: -14px; left: -5px;
+      z-index: 3;
+    }
+    .person-hat::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: -4px; right: -4px;
+      height: 8px;
+      background: #4a5f25;
+      border-radius: 0 0 4px 4px;
+    }
+    .person-body {
+      width: 60px; height: 80px;
+      background: #556b2f;
+      border-radius: 8px 8px 0 0;
+      margin-top: 2px;
+      position: relative;
+    }
+    .person-hair {
+      position: absolute;
+      width: 44px;
+      height: 55px;
+      background: #2c1a0e;
+      border-radius: 50% 50% 40% 40%;
+      top: -10px;
+      left: -1px;
+      z-index: 1;
+    }
+
+    /* Photo 2 with peace sign */
+    .photo-card:nth-child(2) .peace-hand {
+      position: absolute;
+      left: 25px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      font-size: 26px;
+      filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+      animation: waving 1.5s ease-in-out infinite alternate;
+    }
+    @keyframes waving {
+      from { transform: translateY(-50%) rotate(-5deg); }
+      to { transform: translateY(-50%) rotate(5deg); }
+    }
+
+    /* ===== DECORATIVE STICKERS ===== */
+    .sticker {
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* Butterfly top-right */
+    .sticker-butterfly {
+      top: 70px; right: 10px;
+      font-size: 36px;
+      animation: flutter 2s ease-in-out infinite alternate;
+      filter: hue-rotate(120deg) saturate(1.5);
+    }
+    @keyframes flutter {
+      from { transform: rotate(-8deg) scale(1); }
+      to { transform: rotate(8deg) scale(1.1); }
+    }
+
+    /* Flower left-middle */
+    .sticker-flower {
+      top: 280px; left: 8px;
+      font-size: 46px;
+      animation: sway 3s ease-in-out infinite alternate;
+      filter: hue-rotate(180deg) saturate(2);
+    }
+    @keyframes sway {
+      from { transform: rotate(-6deg); }
+      to { transform: rotate(6deg); }
+    }
+
+    /* Sparkle stars */
+    .sticker-sparkle {
+      font-size: 22px;
+      animation: sparkle-pulse 1.8s ease-in-out infinite alternate;
+    }
+    @keyframes sparkle-pulse {
+      from { opacity: 0.5; transform: scale(0.85); }
+      to { opacity: 1; transform: scale(1.15); }
+    }
+    .sp1 { top: 115px; left: 15px; font-size: 28px; }
+    .sp2 { top: 220px; right: 18px; font-size: 18px; }
+    .sp3 { top: 420px; left: 20px; font-size: 24px; }
+    .sp4 { top: 490px; right: 22px; font-size: 16px; }
+
+    /* ===== FOOTER ===== */
+    .story-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px 18px;
+      z-index: 10;
+      position: relative;
+    }
+    .footer-emojis { font-size: 18px; display: flex; gap: 3px; }
+    .footer-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+      font-weight: 500;
+    }
+
+    /* ===== BOTTOM NAV / SEND BAR ===== */
+    .send-bar {
+      padding: 0 12px 14px;
+      z-index: 10;
+      position: relative;
+    }
+    .send-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .send-input {
+      flex: 1;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 8px 14px;
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      outline: none;
+      cursor: text;
+    }
+    .btn-send {
+      background: none; border: none; cursor: pointer;
+      color: white; font-size: 20px; padding: 4px;
+    }
+
+    /* Utility label */
+    .tech-label {
+      position: absolute;
+      bottom: -30px; left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.3);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+<div style="position:relative;">
+  <div class="phone-frame">
+    <div class="story-bg" id="storyBg">
+
+      <!-- Stickers -->
+      <div class="sticker sticker-butterfly">🦋</div>
+      <div class="sticker sticker-flower">🌸</div>
+      <div class="sticker sticker-sparkle sp1">✦</div>
+      <div class="sticker sticker-sparkle sp2">✦</div>
+      <div class="sticker sticker-sparkle sp3">✦</div>
+      <div class="sticker sticker-sparkle sp4">✦</div>
+
+      <!-- Progress bars -->
+      <div class="progress-bar-area">
+        <div class="progress-segment"><div class="progress-fill"></div></div>
+        <div class="progress-segment"><div class="progress-fill"></div></div>
+        <div class="progress-segment"><div class="progress-fill"></div></div>
+      </div>
+
+      <!-- Header -->
+      <div class="story-header">
+        <div class="avatar-wrapper">
+          <div class="avatar-placeholder">H</div>
+        </div>
+        <div class="header-info">
+          <div class="header-name">Đặng Thu Hà</div>
+          <div class="header-meta">
+            <span class="music-icon">🎵</span>
+            <span>Nguyễn Hùng, 30 Pictures · Ở Trong Khu Rừng</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-icon">🔊</button>
+          <button class="btn-icon">⏸</button>
+          <button class="btn-icon">···</button>
+        </div>
+      </div>
+
+      <!-- Photos area -->
+      <div class="photos-area">
+
+        <!-- Photo 1: standing, no peace sign -->
+        <div class="photo-card" id="card1">
+          <div class="camo-bg"></div>
+          <div class="photo-placeholder">
+            <div class="person-silhouette">
+              <div style="position:relative;">
+                <div class="person-hat"></div>
+                <div class="person-hair"></div>
+                <div class="person-head"></div>
+              </div>
+              <div class="person-body"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo 2: with peace sign -->
+        <div class="photo-card" id="card2">
+          <div class="camo-bg"></div>
+          <div class="photo-placeholder" style="position:relative;">
+            <span class="peace-hand">✌️</span>
+            <div class="person-silhouette">
+              <div style="position:relative;">
+                <div class="person-hat"></div>
+                <div class="person-hair"></div>
+                <div class="person-head" style="background:#f0b88a;"></div>
+              </div>
+              <div class="person-body"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="story-footer">
+        <div class="footer-emojis">❤️ 🧡</div>
+        <div class="footer-text">Đã gửi cho Hà</div>
+      </div>
+
+      <!-- Send bar -->
+      <div class="send-bar">
+        <div class="send-input-row">
+          <div class="send-input">Gửi tin nhắn...</div>
+          <button class="btn-send">➤</button>
+        </div>
+      </div>
+
+    </div><!-- /.story-bg -->
+  </div><!-- /.phone-frame -->
+  <div class="tech-label">HTML · CSS · Vanilla JS — VSCode ready</div>
+</div>
+
+<script>
+  // Generate twinkling stars in background
+  const bg = document.getElementById('storyBg');
+  for (let i = 0; i < 30; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    star.style.cssText = `
+      width: ${size}px;
+      height: ${size}px;
+      top: ${Math.random() * 100}%;
+      left: ${Math.random() * 100}%;
+      animation-delay: ${Math.random() * 3}s;
+      animation-duration: ${1.5 + Math.random() * 2}s;
+    `;
+    bg.appendChild(star);
+  }
+
+  // Upload your own photos
+  function addPhotoUpload(cardId, placeholderSelector) {
+    const card = document.getElementById(cardId);
+    card.style.cursor = 'pointer';
+    card.title = 'Click để thêm ảnh';
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+
+    card.addEventListener('click', () => input.click());
+
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const placeholder = card.querySelector('.photo-placeholder');
+      const camo = card.querySelector('.camo-bg');
+      if (camo) camo.remove();
+      placeholder.innerHTML = '';
+      placeholder.style.cssText = `
+        background: url('${url}') center/cover no-repeat;
+        height: 165px;
+        width: 100%;
+      `;
+    });
+  }
+
+  addPhotoUpload('card1', '.photo-placeholder');
+  addPhotoUpload('card2', '.photo-placeholder');
+</script>
+
+</body>
+</html>
